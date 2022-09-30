@@ -24,6 +24,7 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { ElMessageBox } from "element-plus";
 
 const actions = [
   { title: "创建投票", color: "#3498db", type: "create" },
@@ -42,7 +43,20 @@ const router = useRouter();
 const createVote = () => router.push("/create");
 
 // 加入投票需要弹窗用户输入后对比是否存在才可跳转
-const joinVote = () => {};
+const joinVote = () => {
+  ElMessageBox.prompt("请输入场次编号", "提示", {
+    confirmButtonText: "加入打分",
+    cancelButtonText: "取消",
+    inputErrorMessage: "编号长度不应超过六位！",
+    inputValidator: (value) => value.length <= 6,
+  })
+    .then(({ value }) => {
+      // TODO: 检测场次编号是否存在
+
+      router.replace(`/vote/${value}`);
+    })
+    .catch(() => {});
+};
 
 const strategy = {
   create: createVote,
