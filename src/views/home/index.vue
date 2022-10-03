@@ -24,7 +24,8 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import { ElMessageBox } from "element-plus";
+import { ElMessageBox, ElMessage } from "element-plus";
+import { checkVote } from "../../service/home";
 
 const actions = [
   { title: "创建投票", color: "#3498db", type: "create" },
@@ -52,10 +53,18 @@ const joinVote = () => {
   })
     .then(({ value }) => {
       // TODO: 检测场次编号是否存在
-
-      router.replace(`/vote/${value}`);
+      checkVote(value).then((res) => {
+        if (!res.data) {
+          return ElMessage.warning({
+            message: "该打分场次不存在！",
+          });
+        }
+        router.replace(`/vote/${value}`);
+      });
     })
-    .catch(() => {});
+    .catch((e) => {
+      console.log(e);
+    });
 };
 
 const strategy = {

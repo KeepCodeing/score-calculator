@@ -67,6 +67,8 @@
 import { Edit, Check, Lock } from "@element-plus/icons-vue";
 import { ref } from "vue";
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
+import { createVote } from "../../service/create";
+import { ElMessage } from "element-plus";
 
 const voteLimit = ref(0);
 const voteCode = ref(0);
@@ -89,10 +91,27 @@ const handleLimitSubmit = () => {
   curStep.value++;
 };
 
-const handleCodeSubmit = () => {
-  carousel.value.next();
-  curStep.value++;
-  joinUrl.value += `/${voteCode.value}`;
+const handleCodeSubmit = async () => {
+  if (!Number.isInteger(+voteCode.value)) {
+    ElMessage.warning({
+      message: "请输入数字编号！",
+    });
+    return;
+  }
+  const { code } = await createVote({
+    uuid: voteCode.value,
+    paresoncount: voteLimit.value,
+  });
+
+  if (code === "-1") {
+    ElMessage.error({
+      message: "该编号已被使用！",
+    });
+  } else {
+    carousel.value.next();
+    curStep.value++;
+    joinUrl.value += `/${voteCode.value}`;
+  }
 };
 </script>
 
