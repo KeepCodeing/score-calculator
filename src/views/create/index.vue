@@ -3,7 +3,8 @@
     <el-steps :active="curStep" simple>
       <el-step title="人数" :icon="Lock" />
       <el-step title="编号" :icon="Edit" />
-      <el-step title="加入" :icon="Check" />
+      <el-step title="教师" :icon="Check" />
+      <!-- <el-step title="加入" :icon="Check" /> -->
     </el-steps>
     <div class="content">
       <el-carousel
@@ -11,11 +12,18 @@
         arrow="never"
         :autoplay="false"
         indicator-position="none"
+        height="100%"
       >
         <el-carousel-item>
-          <div style="text-align: left">请输入人数限制：</div>
+          <div style="text-align: left">请输入投票人数限制：</div>
           <el-input
             v-model="voteLimit"
+            maxlength="2"
+            style="height: 50px; font-size: 20px; margin-top: 20px"
+          />
+          <div style="text-align: left">请输入教师人数：</div>
+          <el-input
+            v-model="teacherLimit"
             maxlength="2"
             style="height: 50px; font-size: 20px; margin-top: 20px"
           />
@@ -26,10 +34,18 @@
             >确定</el-button
           >
         </el-carousel-item>
-        <el-carousel-item>
+        <el-carousel-item style="height: 85%; overflow-y: scroll">
           <div style="text-align: left">请输入打分场次编号：</div>
           <el-input
             v-model="voteCode"
+            maxlength="6"
+            style="height: 50px; font-size: 20px; margin-top: 20px"
+          />
+          <div style="text-align: left; margin-top: 20px">请输入教师姓名</div>
+          <el-input
+            v-for="item in +teacherLimit"
+            :key="item"
+            v-model="teacherList[item - 1].name"
             maxlength="6"
             style="height: 50px; font-size: 20px; margin-top: 20px"
           />
@@ -46,7 +62,7 @@
           </div>
 
           <vue-qr
-            v-if="curStep === 2"
+            v-if="curStep === 3"
             style="margin-top: 20px"
             :text="joinUrl"
             qid="qrcode"
@@ -74,18 +90,23 @@ const voteLimit = ref(0);
 const voteCode = ref(0);
 const carousel = ref(null);
 const curStep = ref(0);
+const teacherLimit = ref(0);
+const teacherList = ref(Array.from({ length: 30 }, (idx) => ({ name: idx })));
 
 const joinUrl = ref(import.meta.env.VITE_JOIN_URL);
 
 const handleLimitSubmit = () => {
   const val = +voteLimit.value;
-  if (val !== val || val <= 0) {
+  const tval = +teacherLimit.value;
+  if (val !== val || val <= 0 || tval !== tval || tval <= 0) {
     ElMessage({
       message: "请确认人数是否正确！",
       type: "warning",
     });
     return;
   }
+
+  teacherList.value = Array.from({ length: tval }, () => ({ name: "" }));
 
   carousel.value.next();
   curStep.value++;
@@ -98,9 +119,11 @@ const handleCodeSubmit = async () => {
     });
     return;
   }
+
   const { code } = await createVote({
     uuid: voteCode.value,
     paresoncount: voteLimit.value,
+    teachers: teacherList.value,
   });
 
   if (code === "-1") {
@@ -120,10 +143,16 @@ const handleCodeSubmit = async () => {
   height: 100%;
   width: 100%;
   background: #ecf0f1;
+  overflow: hidden;
 }
 
 .content {
   padding: 30px 20px;
   text-align: center;
+  height: 100%;
+}
+
+.el-carousel {
+  height: 100%;
 }
 </style>
