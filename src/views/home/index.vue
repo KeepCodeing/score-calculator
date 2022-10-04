@@ -30,6 +30,7 @@ import { checkVote } from "../../service/home";
 const actions = [
   { title: "创建投票", color: "#3498db", type: "create" },
   { title: "加入投票", color: "#2ecc71", type: "join" },
+  { title: "投票管理", color: "#fbc531", type: "manage" },
 ];
 
 const router = useRouter();
@@ -67,9 +68,31 @@ const joinVote = () => {
     });
 };
 
+// 管理投票写死在前端了...
+const manageVote = () => {
+  ElMessageBox.prompt("请输入管理员秘钥", "提示", {
+    confirmButtonText: "投票管理",
+    cancelButtonText: "取消",
+  })
+    .then(({ value }) => {
+      if (value !== import.meta.env.VITE_ADMIN_CODE) {
+        ElMessage.error({
+          message: "秘钥错误！",
+        });
+      } else {
+        router.replace("/admin");
+        localStorage.setItem("admin", true);
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+};
+
 const strategy = {
   create: createVote,
   join: joinVote,
+  manage: manageVote,
 };
 
 const handleAction = (type, ...args) => strategy[type] && strategy[type](args);

@@ -1,0 +1,76 @@
+<template>
+  <div>
+    <el-collapse style="padding: 0 20px" v-model="active">
+      <el-collapse-item v-for="item in votes" :keys="item.id" :name="item.id">
+        <template #title>
+          <div class="my-vote-title">
+            <span>投票编号：{{ item.uuid }}</span
+            ><span>限制人数: {{ item.paresoncount }}人</span>
+          </div>
+        </template>
+        <el-table>
+          <el-table-column prop="sum" label="总分"></el-table-column>
+          <el-table-column prop="name" label="姓名"></el-table-column>
+          <el-table-column prop="account" label="学号"></el-table-column>
+          <el-table-column prop="program" label="班会方案"></el-table-column>
+          <el-table-column prop="theme" label="班会主题"></el-table-column>
+          <el-table-column prop="formal" label="班会形式"></el-table-column>
+          <el-table-column prop="content" label="班会内容"></el-table-column>
+          <el-table-column prop="effect" label="展示效果"></el-table-column>
+        </el-table>
+      </el-collapse-item>
+    </el-collapse>
+  </div>
+</template>
+
+<script setup>
+import { getAllVotes } from "@/service/admin";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElLoading } from "element-plus";
+
+const votes = ref([]);
+
+const active = ref(0);
+
+const router = useRouter();
+
+onMounted(async () => {
+  if (!localStorage.getItem("admin")) {
+    router.replace("/home");
+    return ElMessage.error({
+      message: "您没有权限访问该页面哦！",
+    });
+  }
+
+  const loading = ElLoading.service({
+    lock: true,
+    text: "数据加载中...",
+    background: "rgba(0, 0, 0, 0.7)",
+  });
+
+  try {
+    const {
+      data: { data },
+    } = await getAllVotes();
+    votes.value = data;
+  } catch (e) {
+    votes.value = [];
+  } finally {
+    loading.close();
+  }
+});
+</script>
+
+<style scoped>
+.my-vote-title {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 10px;
+}
+.my-voted-title {
+  display: flex;
+  justify-content: space-between;
+}
+</style>

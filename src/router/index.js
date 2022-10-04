@@ -17,6 +17,10 @@ const routes = [
     path: "/create",
     component: () => import("@/views/create/index.vue"),
   },
+  {
+    path: "/admin",
+    component: () => import("@/views/admin/index.vue"),
+  },
 ];
 
 export default createRouter({

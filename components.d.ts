@@ -8,6 +8,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElCard: typeof import('element-plus/es')['ElCard']
     ElCarousel: typeof import('element-plus/es')['ElCarousel']
     ElCarouselItem: typeof import('element-plus/es')['ElCarouselItem']
     ElCollapse: typeof import('element-plus/es')['ElCollapse']
@@ -20,6 +21,8 @@ declare module '@vue/runtime-core' {
     ElSteps: typeof import('element-plus/es')['ElSteps']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTimeline: typeof import('element-plus/es')['ElTimeline']
+    ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

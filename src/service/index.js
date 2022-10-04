@@ -1,10 +1,12 @@
 import axios from "axios";
 import { ElMessage } from "element-plus";
 
-console.log(import.meta.env.VITE_BASE_URL);
+// console.log(import.meta.env.VITE_BASE_URL);
 const inst = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
 });
+
+// console.log(import.meta.env.VITE_BASE_URL, import.meta.env.MODE);
 
 const statusMap = new Map([
   [500, "服务器出错辣！"],
