@@ -60,9 +60,8 @@
           <div style="text-align: left">
             扫码或输入场次编号（{{ voteCode }}）即可加入打分！
           </div>
-
           <vue-qr
-            v-if="curStep === 3"
+            v-if="curStep === 2"
             style="margin-top: 20px"
             :text="joinUrl"
             qid="qrcode"

@@ -21,7 +21,7 @@
           <el-table-column prop="name" label="姓名"></el-table-column>
           <el-table-column prop="sum" label="总分"></el-table-column>
           <el-table-column prop="avg" label="均分"></el-table-column>
-          <el-table-column prop="count" label="参与人数"></el-table-column>
+          <el-table-column prop="curr_count" label="参与人数"></el-table-column>
           <el-table-column prop="program" label="班会方案"></el-table-column>
           <el-table-column prop="theme" label="班会主题"></el-table-column>
           <el-table-column prop="formal" label="班会形式"></el-table-column>
@@ -78,7 +78,7 @@ const changeVote = async (vid) => {
   const { data } = await getVoteDetail(vid);
   currentVoteData.value = data.map((item) => ({
     ...item,
-    avg: item.sum / 1,
+    avg: item.curr_count ? item.sum / item.curr_count : 0,
     count: 0,
   }));
 };
