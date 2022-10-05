@@ -1,6 +1,7 @@
-export const setStorage = (vid) => {
+export const setStorage = (vid, tid) => {
   const voted = getStorage();
-  voted[vid] = true;
+  if (!voted[vid]) voted[vid] = {};
+  voted[vid][tid] = true;
   localStorage.setItem("voted", JSON.stringify(voted));
 };
 
@@ -9,9 +10,10 @@ export const getStorage = () => {
   return JSON.parse(voted);
 };
 
-export const checkStorage = (vid) => {
+export const checkStorage = (vid, tid) => {
   const voted = getStorage();
-  return voted[vid];
+  if (!voted[vid]) voted[vid] = {};
+  return voted[vid][tid];
 };
 
 export const useStorage = () => ({

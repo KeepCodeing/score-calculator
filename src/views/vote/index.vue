@@ -9,7 +9,6 @@
           </div>
         </template>
         <el-form
-          v-if="!voted"
           ref="form"
           style="margin-top: 20px"
           label-width="80px"
@@ -18,29 +17,45 @@
           :rules="voteRules"
           status-icon
         >
-          <el-form-item required label="学号" prop="account">
-            <el-input v-model="myVote.account" />
+          <el-form-item required label="老师" prop="teacherid">
+            <el-select
+              style="width: 100%"
+              v-model="myVote.teacherid"
+              placeholder="请选择老师"
+            >
+              <el-option
+                v-for="item in teacherList"
+                :key="item.id"
+                :value="item.id"
+                :label="item.name"
+              ></el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item required label="姓名" prop="name">
-            <el-input v-model="myVote.name" />
-          </el-form-item>
-          <el-form-item required label="班会方案" prop="program">
-            <el-input-number style="width: 100%" v-model="myVote.program" />
-          </el-form-item>
-          <el-form-item required label="班会主题" prop="theme">
-            <el-input-number style="width: 100%" v-model="myVote.theme" />
-          </el-form-item>
-          <el-form-item required label="班会形式" prop="formal">
-            <el-input-number style="width: 100%" v-model="myVote.formal" />
-          </el-form-item>
-          <el-form-item required label="班会内容" prop="content">
-            <el-input-number style="width: 100%" v-model="myVote.content" />
-          </el-form-item>
-          <el-form-item required label="展示效果" prop="effect">
-            <el-input-number style="width: 100%" v-model="myVote.effect" />
-          </el-form-item>
+          <template v-if="!voted">
+            <el-form-item required label="学号" prop="account">
+              <el-input v-model="myVote.account" />
+            </el-form-item>
+            <el-form-item required label="姓名" prop="name">
+              <el-input v-model="myVote.name" />
+            </el-form-item>
+            <el-form-item required label="班会方案" prop="program">
+              <el-input-number style="width: 100%" v-model="myVote.program" />
+            </el-form-item>
+            <el-form-item required label="班会主题" prop="theme">
+              <el-input-number style="width: 100%" v-model="myVote.theme" />
+            </el-form-item>
+            <el-form-item required label="班会形式" prop="formal">
+              <el-input-number style="width: 100%" v-model="myVote.formal" />
+            </el-form-item>
+            <el-form-item required label="班会内容" prop="content">
+              <el-input-number style="width: 100%" v-model="myVote.content" />
+            </el-form-item>
+            <el-form-item required label="展示效果" prop="effect">
+              <el-input-number style="width: 100%" v-model="myVote.effect" />
+            </el-form-item>
+          </template>
         </el-form>
-        <h3 v-else class="voted-title">您已参与投票！</h3>
+        <h3 v-if="voted" class="voted-title">您已参与投票！</h3>
         <el-button
           v-if="!voted"
           @click="handleSubmit"
@@ -72,9 +87,9 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { postVote, getAllVote } from "../../service/vote";
+import { postVote, getAllVote, getTeachers } from "../../service/vote";
 import { checkVote } from "../../service/home";
 import { ElMessage } from "element-plus";
 import { useStorage } from "@/hooks/useStorage";
@@ -85,6 +100,8 @@ const route = useRoute();
 const router = useRouter();
 
 const voteId = route.params.id;
+
+const teacherList = ref([]);
 
 checkVote(voteId).then((res) => {
   if (!res.data) {
@@ -103,7 +120,12 @@ const voteLimit = ref(-1);
 
 const { checkStorage, setStorage } = useStorage();
 
-const voted = ref(checkStorage(voteId));
+const voted = ref(checkStorage(voteId, -1));
+
+onMounted(async () => {
+  const { data } = await getTeachers(voteId);
+  teacherList.value = data;
+});
 
 function updateAllVotes(stime) {
   let lastTime = 0;
@@ -111,7 +133,7 @@ function updateAllVotes(stime) {
   async function _updateAllVotes(time) {
     sum += time - lastTime;
     if (sum >= 1500) {
-      const res = await getAllVote(voteId);
+      const res = await getAllVote(voteId, myVote.teacherid);
       if (res) {
         allVotes.value = res.data.data;
         allSum.value = allVotes.value.reduce((prev, now) => prev + now.sum, 0);
@@ -129,8 +151,6 @@ function updateAllVotes(stime) {
   _updateAllVotes(stime);
 }
 
-updateAllVotes(0);
-
 const myVote = reactive({
   program: 20,
   theme: 20,
@@ -138,6 +158,14 @@ const myVote = reactive({
   content: 20,
   effect: 20,
 });
+
+watch(
+  () => myVote.teacherid,
+  (val, oldVal) => {
+    if (oldVal === undefined) updateAllVotes(0);
+    voted.value = checkStorage(voteId, val);
+  }
+);
 
 const totalScore = ref(0);
 
@@ -157,12 +185,17 @@ const handleSubmit = () => {
 
     voted.value = true;
 
-    setStorage(voteId);
+    setStorage(voteId, myVote.teacherid);
 
     postVote({ ...myVote, scoreid: voteId }).then((res) => {
       if (res.code === "500") {
         ElMessage.warning({
           message: "学号重复或人数已满！",
+        });
+      }
+      if (res.code === "-1") {
+        ElMessage.warning({
+          message: "投票已过期或人数已满！",
         });
       }
     });
