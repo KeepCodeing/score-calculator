@@ -1,17 +1,27 @@
 <template>
   <div>
-    <el-collapse style="padding: 0 20px" v-model="active">
-      <el-collapse-item v-for="item in votes" :keys="item.id" :name="item.id">
+    <el-collapse
+      @change="changeVote"
+      accordion
+      style="padding: 0 20px"
+      v-model="active"
+    >
+      <el-collapse-item
+        v-for="item in votes"
+        :keys="item.uuid"
+        :name="item.uuid"
+      >
         <template #title>
           <div class="my-vote-title">
             <span>投票编号：{{ item.uuid }}</span
             ><span>限制人数: {{ item.paresoncount }}人</span>
           </div>
         </template>
-        <el-table>
-          <el-table-column prop="sum" label="总分"></el-table-column>
+        <el-table :data="currentVoteData">
           <el-table-column prop="name" label="姓名"></el-table-column>
-          <el-table-column prop="account" label="学号"></el-table-column>
+          <el-table-column prop="sum" label="总分"></el-table-column>
+          <el-table-column prop="avg" label="均分"></el-table-column>
+          <el-table-column prop="count" label="参与人数"></el-table-column>
           <el-table-column prop="program" label="班会方案"></el-table-column>
           <el-table-column prop="theme" label="班会主题"></el-table-column>
           <el-table-column prop="formal" label="班会形式"></el-table-column>
@@ -24,7 +34,7 @@
 </template>
 
 <script setup>
-import { getAllVotes } from "@/service/admin";
+import { getAllVotes, getVoteDetail } from "@/service/admin";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElLoading } from "element-plus";
@@ -60,6 +70,18 @@ onMounted(async () => {
     loading.close();
   }
 });
+
+const currentVoteData = ref([]);
+
+const changeVote = async (vid) => {
+  if (!vid) return;
+  const { data } = await getVoteDetail(vid);
+  currentVoteData.value = data.map((item) => ({
+    ...item,
+    avg: item.sum / 1,
+    count: 0,
+  }));
+};
 </script>
 
 <style scoped>

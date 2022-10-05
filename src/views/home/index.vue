@@ -73,6 +73,7 @@ const manageVote = () => {
   ElMessageBox.prompt("请输入管理员秘钥", "提示", {
     confirmButtonText: "投票管理",
     cancelButtonText: "取消",
+    inputType: "password",
   })
     .then(({ value }) => {
       if (value !== import.meta.env.VITE_ADMIN_CODE) {

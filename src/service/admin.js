@@ -6,3 +6,10 @@ export const getAllVotes = function () {
     method: "get",
   });
 };
+
+export const getVoteDetail = function (vid) {
+  return service({
+    url: `/demo/teacher/admin/select/${vid}`,
+    method: "get",
+  });
+};
