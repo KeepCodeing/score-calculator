@@ -1,6 +1,9 @@
 <template>
   <div>
     <h3 class="score-title">全体总分：{{ allSum }}</h3>
+    <div class="light-box" v-if="voteLimit !== -1">
+      <div class="light-box-item" v-for="item in voteLimit"></div>
+    </div>
     <el-collapse style="padding: 0 20px" v-model="active">
       <el-collapse-item name="my">
         <template #title>
@@ -162,7 +165,7 @@ const myVote = reactive({
 watch(
   () => myVote.teacherid,
   (val, oldVal) => {
-    if (oldVal === undefined) updateAllVotes(0);
+    if (val !== undefined) updateAllVotes(0);
     voted.value = checkStorage(voteId, val);
   }
 );
@@ -232,5 +235,18 @@ const voteRules = reactive({
 
 .voted-title {
   text-align: center;
+}
+
+.light-box {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.light-box-item {
+  flex: 1 0;
+  height: 40px;
+  margin: 20px;
+  background: yellow;
 }
 </style>
