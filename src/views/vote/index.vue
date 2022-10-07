@@ -2,7 +2,17 @@
   <div>
     <h3 class="score-title">全体总分：{{ allSum }}</h3>
     <div class="light-box" v-if="voteLimit !== -1">
-      <div class="light-box-item" v-for="item in voteLimit"></div>
+      <div
+        class="light-box-item"
+        v-for="item in allVotes.length"
+        :key="item.id"
+      ></div>
+      <div
+        class="light-box-item"
+        style="background: green"
+        v-for="item in voteLimit - allVotes.length"
+        :key="item"
+      ></div>
     </div>
     <el-collapse style="padding: 0 20px" v-model="active">
       <el-collapse-item name="my">
@@ -240,13 +250,14 @@ const voteRules = reactive({
 .light-box {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
+  flex-wrap: wrap;
 }
 
 .light-box-item {
-  flex: 1 0;
   height: 40px;
-  margin: 20px;
+  width: 40px;
+  margin: 5px;
   background: yellow;
 }
 </style>
