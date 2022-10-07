@@ -28,6 +28,9 @@
           <el-table-column prop="content" label="班会内容"></el-table-column>
           <el-table-column prop="effect" label="展示效果"></el-table-column>
         </el-table>
+        <el-button style="margin-top: 20px" @click="download" type="primary"
+          >下载数据</el-button
+        >
       </el-collapse-item>
     </el-collapse>
   </div>
@@ -44,6 +47,29 @@ const votes = ref([]);
 const active = ref(0);
 
 const router = useRouter();
+
+const download = () => {
+  let a = document.createElement("a");
+
+  a.setAttribute(
+    "download",
+    `http://huiyuanai.cloud:8099/demo/exceltitle/excel/${active.value}`
+  );
+  a.setAttribute(
+    "href",
+    `http://huiyuanai.cloud:8099/demo/exceltitle/excel/${active.value}`
+  );
+  a.setAttribute("target", "_self");
+
+  a.style.display = "none";
+  document.body.appendChild(a);
+
+  console.log(a);
+
+  a.click();
+
+  a = null;
+};
 
 onMounted(async () => {
   if (!localStorage.getItem("admin")) {
