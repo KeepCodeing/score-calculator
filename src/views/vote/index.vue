@@ -140,12 +140,13 @@ onMounted(async () => {
   teacherList.value = data;
 });
 
+console.log(import.meta.env.VITE_UPDATE_LIMIT);
 function updateAllVotes(stime) {
   let lastTime = 0;
   let sum = 0;
   async function _updateAllVotes(time) {
     sum += time - lastTime;
-    if (sum >= 1500) {
+    if (sum >= import.meta.env.VITE_UPDATE_LIMIT) {
       const res = await getAllVote(voteId, myVote.teacherid);
       if (res) {
         allVotes.value = res.data.data;
