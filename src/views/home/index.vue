@@ -19,13 +19,31 @@
         </div>
       </div>
     </div>
+
+    <el-dialog v-model="dialogVisible" title="请输入个人信息" width="60%">
+      <el-form label-width="70" :model="userInfo">
+        <el-form-item label="学号" required prop="account">
+          <el-input v-model="userInfo.account"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名" required prop="name">
+          <el-input v-model="userInfo.name"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleInfoSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from "vue-router";
 import { ElMessageBox, ElMessage } from "element-plus";
-import { checkVote } from "../../service/home";
+import { checkVote, updateVoteCount } from "../../service/home";
+import { ref, reactive } from "vue";
 
 const actions = [
   { title: "创建投票", color: "#3498db", type: "create" },
@@ -34,6 +52,12 @@ const actions = [
 ];
 
 const router = useRouter();
+
+const dialogVisible = ref(false);
+const userInfo = reactive({
+  account: "",
+  name: "",
+});
 
 // 这里一开始没想全面，以为创建投票直接创建就行了
 // 而加入直接跳转，所以写成了策略模式
@@ -44,6 +68,22 @@ const router = useRouter();
 // 创建投票用跳转+更新的方式来
 const createVote = () => router.push("/create");
 
+const currentVoteId = ref(-114514);
+
+const handleInfoSubmit = () => {
+  if (!userInfo.account || !userInfo.name) {
+    ElMessage.error({
+      message: "请填写完整信息！",
+    });
+    return;
+  }
+  updateVoteCount(currentVoteId.value);
+  localStorage.setItem("user-info", JSON.stringify(userInfo));
+  dialogVisible.value = false;
+
+  router.replace(`/vote/${currentVoteId.value}`);
+};
+
 // 加入投票需要弹窗用户输入后对比是否存在才可跳转
 const joinVote = () => {
   ElMessageBox.prompt("请输入场次编号", "提示", {
@@ -53,13 +93,31 @@ const joinVote = () => {
     inputValidator: (value) => value.length <= 6,
   })
     .then(({ value }) => {
-      // TODO: 检测场次编号是否存在
+      // TODO: 检测场次编号是否存在（超时、是否已满）
       checkVote(value).then((res) => {
-        if (!res.data) {
+        if (res.code === "-1") {
           return ElMessage.warning({
-            message: "该打分场次不存在！",
+            message: res.msg || "该场次已满！",
           });
         }
+        const userInfo = localStorage.getItem("user-info");
+        // 用户信息不存在，提示输入然后更新场次人数
+        if (!userInfo) {
+          currentVoteId.value = value;
+          dialogVisible.value = true;
+          return;
+        }
+        // 信息存在，查看是否加入过本场次
+        // 如果加入就不更新
+        // 自己封装的hooks简直费拉不堪，干脆不用算了
+
+        const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+        if (!joined.includes(value)) {
+          joined.push(value);
+          updateVoteCount(value);
+        }
+        localStorage.setItem("joined", JSON.stringify(joined));
+
         router.replace(`/vote/${value}`);
       });
     })

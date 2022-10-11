@@ -6,3 +6,11 @@ export const checkVote = (id) => {
     url: `/demo/scoretable/selectById/${id}`,
   });
 };
+
+
+export const updateVoteCount = (id) => {
+  return service({
+    method: "get",
+    url: `/demo/scoretable/addCount/${id}`
+  })
+}

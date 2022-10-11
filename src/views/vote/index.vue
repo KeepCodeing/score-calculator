@@ -45,11 +45,11 @@
             </el-select>
           </el-form-item>
           <template v-if="!voted">
-            <el-form-item required label="学号" prop="account">
-              <el-input v-model="myVote.account" />
+            <el-form-item label="学号" prop="account">
+              <el-input disabled v-model="myVote.account" />
             </el-form-item>
-            <el-form-item required label="姓名" prop="name">
-              <el-input v-model="myVote.name" />
+            <el-form-item label="姓名" prop="name">
+              <el-input disabled v-model="myVote.name" />
             </el-form-item>
             <el-form-item required label="班会方案" prop="program">
               <el-input-number style="width: 100%" v-model="myVote.program" />
@@ -96,6 +96,22 @@
         </el-table>
       </el-collapse-item>
     </el-collapse>
+    <el-dialog v-model="dialogVisible" title="请输入个人信息" width="60%">
+      <el-form label-width="70" :model="myVote">
+        <el-form-item label="学号" required prop="account">
+          <el-input v-model="myVote.account"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名" required prop="name">
+          <el-input v-model="myVote.name"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleCancel">取消</el-button>
+          <el-button type="primary" @click="handleInfoSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -103,7 +119,7 @@
 import { ref, reactive, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { postVote, getAllVote, getTeachers } from "../../service/vote";
-import { checkVote } from "../../service/home";
+import { checkVote, updateVoteCount } from "../../service/home";
 import { ElMessage } from "element-plus";
 import { useStorage } from "@/hooks/useStorage";
 
@@ -112,18 +128,65 @@ const active = ref("my");
 const route = useRoute();
 const router = useRouter();
 
+const userInfoStr = localStorage.getItem("user-info") || "{}";
+const userInfo = userInfoStr && JSON.parse(userInfoStr);
+
+const myVote = reactive({
+  program: 20,
+  theme: 20,
+  formal: 20,
+  content: 20,
+  effect: 20,
+  account: userInfo.account || "",
+  name: userInfo.name || "",
+});
+
 const voteId = route.params.id;
 
 const teacherList = ref([]);
 
+const dialogVisible = ref(false);
+
+const handleCancel = () => {
+  router.replace("/home");
+};
+
 checkVote(voteId).then((res) => {
-  if (!res.data) {
+  if (res.code === "-1") {
     ElMessage.warning({
-      message: "该打分场次不存在！",
+      message: res.msg,
     });
     router.replace("/home");
   }
 });
+
+// const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+// if (!joined.includes(voteId)) {
+//   joined.push(voteId);
+//   updateVoteCount(voteId);
+// }
+// localStorage.setItem("joined", JSON.stringify(joined));
+
+const handleInfoSubmit = () => {
+  if (!myVote.account || !myVote.name) {
+    return ElMessage.warning({
+      message: "请输入完整信息！",
+    });
+  }
+  localStorage.setItem(
+    "user-info",
+    JSON.stringify({ account: myVote.account, name: myVote.name })
+  );
+  updateVoteCount(voteId);
+  const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+  if (!joined.includes(voteId)) {
+    joined.push(voteId);
+  }
+  localStorage.setItem("joined", JSON.stringify(joined));
+  dialogVisible.value = false;
+};
+
+if (!myVote.account) dialogVisible.value = true;
 
 const allVotes = ref([]);
 
@@ -140,7 +203,7 @@ onMounted(async () => {
   teacherList.value = data;
 });
 
-console.log(import.meta.env.VITE_UPDATE_LIMIT);
+// console.log(import.meta.env.VITE_UPDATE_LIMIT);
 function updateAllVotes(stime) {
   let lastTime = 0;
   let sum = 0;
@@ -164,14 +227,6 @@ function updateAllVotes(stime) {
 
   _updateAllVotes(stime);
 }
-
-const myVote = reactive({
-  program: 20,
-  theme: 20,
-  formal: 20,
-  content: 20,
-  effect: 20,
-});
 
 watch(
   () => myVote.teacherid,
