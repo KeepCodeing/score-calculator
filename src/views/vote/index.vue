@@ -204,11 +204,20 @@ onMounted(async () => {
   const joined = JSON.parse(localStorage.getItem("joined") || "[]");
   // console.log(joined);
   if (!joined.includes(voteId)) {
-    updateVoteCount(voteId);
-    joined.push(voteId);
-  }
+    updateVoteCount(voteId).then(() => {
+      joined.push(voteId);
+      localStorage.setItem("joined", JSON.stringify(joined));
 
-  localStorage.setItem("joined", JSON.stringify(joined));
+      checkVote(voteId).then((res) => {
+        if (res.code === "-1") {
+          ElMessage.warning({
+            message: res.msg,
+          });
+          router.replace("/home");
+        }
+      });
+    });
+  }
 });
 
 // console.log(import.meta.env.VITE_UPDATE_LIMIT);
