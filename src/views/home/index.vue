@@ -117,6 +117,7 @@ const joinVote = () => {
           updateVoteCount(value);
         }
         localStorage.setItem("joined", JSON.stringify(joined));
+        // console.log(joined);
 
         router.replace(`/vote/${value}`);
       });

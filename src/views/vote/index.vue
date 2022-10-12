@@ -201,6 +201,14 @@ const voted = ref(checkStorage(voteId, -1));
 onMounted(async () => {
   const { data } = await getTeachers(voteId);
   teacherList.value = data;
+  const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+  // console.log(joined);
+  if (!joined.includes(voteId)) {
+    updateVoteCount(voteId);
+    joined.push(voteId);
+  }
+
+  localStorage.setItem("joined", JSON.stringify(joined));
 });
 
 // console.log(import.meta.env.VITE_UPDATE_LIMIT);
