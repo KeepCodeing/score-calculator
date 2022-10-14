@@ -31,6 +31,12 @@
         <el-button style="margin-top: 20px" @click="download" type="primary"
           >下载数据</el-button
         >
+        <el-button
+          style="margin-top: 20px"
+          @click="() => handleVoteDetail(item)"
+          type="success"
+          >查看详情</el-button
+        >
       </el-collapse-item>
     </el-collapse>
   </div>
@@ -63,8 +69,6 @@ const download = () => {
 
   a.style.display = "none";
   document.body.appendChild(a);
-
-  console.log(a);
 
   a.click();
 
@@ -107,6 +111,10 @@ const changeVote = async (vid) => {
     avg: item.curr_count ? item.sum / item.curr_count : 0,
     count: 0,
   }));
+};
+
+const handleVoteDetail = (item) => {
+  router.push(`/detail/${item.uuid || -1}`);
 };
 </script>
 

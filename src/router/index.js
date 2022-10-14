@@ -21,6 +21,10 @@ const routes = [
     path: "/admin",
     component: () => import("@/views/admin/index.vue"),
   },
+  {
+    path: "/detail/:id",
+    component: () => import("@/views/detail/index.vue"),
+  },
 ];
 
 export default createRouter({
