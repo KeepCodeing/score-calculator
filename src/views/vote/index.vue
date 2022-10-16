@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div class="logo" :style="{ backgroundImage: `url(/img/logo.jpg)` }"></div>
     <h3 class="score-title">全体总分：{{ allSum }}</h3>
     <div class="light-box" v-if="voteLimit !== -1">
       <div
@@ -151,14 +152,18 @@ const handleCancel = () => {
   router.replace("/home");
 };
 
-checkVote(voteId).then((res) => {
-  if (res.code === "-1") {
-    ElMessage.warning({
-      message: res.msg,
-    });
-    router.replace("/home");
-  }
-});
+const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+
+if (!joined.includes(voteId)) {
+  checkVote(voteId).then((res) => {
+    if (res.code === "-1") {
+      ElMessage.warning({
+        message: res.msg,
+      });
+      router.replace("/home");
+    }
+  });
+}
 
 // const joined = JSON.parse(localStorage.getItem("joined") || "[]");
 // if (!joined.includes(voteId)) {
@@ -332,5 +337,12 @@ const voteRules = reactive({
   width: 40px;
   margin: 5px;
   background: yellow;
+}
+
+.logo {
+  height: 150px;
+  width: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 </style>

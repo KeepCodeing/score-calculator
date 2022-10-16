@@ -1,6 +1,7 @@
 <template>
-  <div style="padding: 10px">
-    <el-row>
+  <div>
+    <div class="logo" :style="{ backgroundImage: `url(/img/logo.jpg)` }"></div>
+    <el-row style="padding: 10px">
       <el-col
         v-for="(item, idx) in voteDetail"
         :key="item.id"
@@ -16,10 +17,10 @@
         >
           <template #default="{ percentage }">
             <span class="percentage-value"
-              >平均<span style="color: #e74c3c">{{ percentage }}</span
+              ><span style="color: #e74c3c">{{ percentage }}</span
               >分</span
             >
-            <span class="percentage-label">{{ item.name }}老师</span>
+            <span class="percentage-label">{{ item.name }}</span>
           </template>
         </el-progress>
       </el-col>
@@ -65,7 +66,7 @@ const fetchData = async () => {
     const { data } = await getVoteDetail(id);
     voteDetail.value = data.map((item) => ({
       name: item.name,
-      avg: item.sum / item.curr_count,
+      avg: item.sum / (item.curr_count || 1),
       count: item.curr_count,
       id: item.id,
     }));
@@ -76,7 +77,7 @@ const fetchData = async () => {
   }
 };
 
-onMounted(async () => {
+onMounted(() => {
   if (id === -1 || !localStorage.getItem("admin")) {
     router.back();
     return ElMessage.error({
@@ -105,6 +106,13 @@ onUnmounted(() => {
 .percentage-label {
   display: block;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 24px;
+}
+
+.logo {
+  height: 150px;
+  width: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 </style>

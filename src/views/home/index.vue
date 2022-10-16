@@ -1,10 +1,11 @@
 <template>
   <div class="container">
     <el-carousel height="150px">
-      <el-carousel-item v-for="item in 4" :key="item">
-        <h3 class="small justify-center" text="2xl">
-          学校公告等信息{{ item }}
-        </h3>
+      <el-carousel-item>
+        <div
+          class="logo"
+          :style="{ backgroundImage: `url(/img/logo.jpg)` }"
+        ></div>
       </el-carousel-item>
     </el-carousel>
     <div class="content">
@@ -199,5 +200,12 @@ const handleAction = (type, ...args) => strategy[type] && strategy[type](args);
 
   color: white;
   margin: 20px 0;
+}
+
+.logo {
+  height: 100%;
+  width: 100%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 </style>
