@@ -1,19 +1,20 @@
 <template>
   <div>
     <div class="logo" :style="{ backgroundImage: `url(/img/logo.jpg)` }"></div>
-    <el-row style="padding: 10px">
+    <el-row style="padding-top: 100px">
       <el-col
         v-for="(item, idx) in voteDetail"
         :key="item.id"
-        :md="4"
+        :md="8"
         :sm="12"
         :xs="12"
-        style="text-align: center"
+        style="text-align: center; height: 300px; transform: scaleY(1.5)"
       >
         <el-progress
           :color="colorList[idx % colorLen]"
           type="dashboard"
-          :percentage="item.avg"
+          :percentage="+item.avg"
+          style="transform: scaleX(1.5)"
         >
           <template #default="{ percentage }">
             <span class="percentage-value"
@@ -66,7 +67,7 @@ const fetchData = async () => {
     const { data } = await getVoteDetail(id);
     voteDetail.value = data.map((item) => ({
       name: item.name,
-      avg: item.sum / (item.curr_count || 1),
+      avg: (item.sum / (item.curr_count || 1)).toFixed(2),
       count: item.curr_count,
       id: item.id,
     }));
