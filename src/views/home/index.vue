@@ -94,34 +94,43 @@ const joinVote = () => {
     inputValidator: (value) => value.length <= 6,
   })
     .then(({ value }) => {
-      // TODO: 检测场次编号是否存在（超时、是否已满）
+      // 需求变动：不需要检测人数，只要存在且未超时就可进入
       checkVote(value).then((res) => {
         if (res.code === "-1") {
           return ElMessage.warning({
             message: res.msg || "该场次已满！",
           });
         }
-        const userInfo = localStorage.getItem("user-info");
-        // 用户信息不存在，提示输入然后更新场次人数
-        if (!userInfo) {
-          currentVoteId.value = value;
-          dialogVisible.value = true;
-          return;
-        }
-        // 信息存在，查看是否加入过本场次
-        // 如果加入就不更新
-        // 自己封装的hooks简直费拉不堪，干脆不用算了
-
-        const joined = JSON.parse(localStorage.getItem("joined") || "[]");
-        if (!joined.includes(value)) {
-          joined.push(value);
-          updateVoteCount(value);
-        }
-        localStorage.setItem("joined", JSON.stringify(joined));
-        // console.log(joined);
 
         router.replace(`/vote/${value}`);
       });
+
+      // TODO: 检测场次编号是否存在（超时、是否已满）
+      // checkVote(value).then((res) => {
+      //   if (res.code === "-1") {
+      //     return ElMessage.warning({
+      //       message: res.msg || "该场次已满！",
+      //     });
+      //   }
+      //   const userInfo = localStorage.getItem("user-info");
+      //   // 用户信息不存在，提示输入然后更新场次人数
+      //   if (!userInfo) {
+      //     currentVoteId.value = value;
+      //     dialogVisible.value = true;
+      //     return;
+      //   }
+      //   // 信息存在，查看是否加入过本场次
+      //   // 如果加入就不更新
+      //   // 自己封装的hooks简直费拉不堪，干脆不用算了
+      //   const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+      //   if (!joined.includes(value)) {
+      //     joined.push(value);
+      //     updateVoteCount(value);
+      //   }
+      //   localStorage.setItem("joined", JSON.stringify(joined));
+      //   // console.log(joined);
+      //   router.replace(`/vote/${value}`);
+      // });
     })
     .catch((e) => {
       console.log(e);

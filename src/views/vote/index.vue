@@ -45,33 +45,30 @@
               ></el-option>
             </el-select>
           </el-form-item>
-          <template v-if="!voted">
-            <el-form-item label="学号" prop="account">
-              <el-input disabled v-model="myVote.account" />
-            </el-form-item>
-            <el-form-item label="姓名" prop="name">
-              <el-input disabled v-model="myVote.name" />
-            </el-form-item>
-            <el-form-item required label="班会方案" prop="program">
-              <el-input-number style="width: 100%" v-model="myVote.program" />
-            </el-form-item>
-            <el-form-item required label="班会主题" prop="theme">
-              <el-input-number style="width: 100%" v-model="myVote.theme" />
-            </el-form-item>
-            <el-form-item required label="班会形式" prop="formal">
-              <el-input-number style="width: 100%" v-model="myVote.formal" />
-            </el-form-item>
-            <el-form-item required label="班会内容" prop="content">
-              <el-input-number style="width: 100%" v-model="myVote.content" />
-            </el-form-item>
-            <el-form-item required label="展示效果" prop="effect">
-              <el-input-number style="width: 100%" v-model="myVote.effect" />
-            </el-form-item>
-          </template>
+          <el-form-item label="学号" prop="account">
+            <el-input disabled v-model="myVote.account" />
+          </el-form-item>
+          <el-form-item label="姓名" prop="name">
+            <el-input disabled v-model="myVote.name" />
+          </el-form-item>
+          <el-form-item required label="班会方案" prop="program">
+            <el-input-number style="width: 100%" v-model="myVote.program" />
+          </el-form-item>
+          <el-form-item required label="班会主题" prop="theme">
+            <el-input-number style="width: 100%" v-model="myVote.theme" />
+          </el-form-item>
+          <el-form-item required label="班会形式" prop="formal">
+            <el-input-number style="width: 100%" v-model="myVote.formal" />
+          </el-form-item>
+          <el-form-item required label="班会内容" prop="content">
+            <el-input-number style="width: 100%" v-model="myVote.content" />
+          </el-form-item>
+          <el-form-item required label="展示效果" prop="effect">
+            <el-input-number style="width: 100%" v-model="myVote.effect" />
+          </el-form-item>
         </el-form>
-        <h3 v-if="voted" class="voted-title">您已参与投票！</h3>
+        <!-- <h3 v-if="voted" class="voted-title">您已参与投票！</h3> -->
         <el-button
-          v-if="!voted"
           @click="handleSubmit"
           style="margin-top: 20px; width: 100%"
           type="success"
@@ -146,14 +143,25 @@ const voteId = route.params.id;
 
 const teacherList = ref([]);
 
-const dialogVisible = ref(false);
+// 账号提示改为每次进入都提示，这样可以防止错误输入后无法更改
+const dialogVisible = ref(true);
 
 const handleCancel = () => {
-  router.replace("/home");
+  // router.replace("/home");
+  ElMessage.warning({
+    message: "不填写信息无法进行投票！",
+  });
+  dialogVisible.value = false;
 };
 
-const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+// 需求变化：不用判断人数是否已满，不过后台去掉这个限制即可
+// 现在根据用户信息来判断是否有权投票
 
+// const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+// 去掉已投票校验，交给后端验证
+const joined = [];
+
+// 大部分之前的逻辑都可以保留，主要是投票进行限制
 if (!joined.includes(voteId)) {
   checkVote(voteId).then((res) => {
     if (res.code === "-1") {
@@ -178,20 +186,24 @@ const handleInfoSubmit = () => {
       message: "请输入完整信息！",
     });
   }
+
+  // TODO: 判断用户输入信息是否有效？这个操作可以在提交时后台一并处理
+  // 也可以在输入完信息后做个校验
+
   localStorage.setItem(
     "user-info",
     JSON.stringify({ account: myVote.account, name: myVote.name })
   );
   updateVoteCount(voteId);
-  const joined = JSON.parse(localStorage.getItem("joined") || "[]");
-  if (!joined.includes(voteId)) {
-    joined.push(voteId);
-  }
-  localStorage.setItem("joined", JSON.stringify(joined));
+  // const joined = JSON.parse(localStorage.getItem("joined") || "[]");
+  // if (!joined.includes(voteId)) {
+  //   joined.push(voteId);
+  // }
+  // localStorage.setItem("joined", JSON.stringify(joined));
   dialogVisible.value = false;
 };
 
-if (!myVote.account) dialogVisible.value = true;
+// if (!myVote.account) dialogVisible.value = true;
 
 const allVotes = ref([]);
 
@@ -210,8 +222,8 @@ onMounted(async () => {
   // console.log(joined);
   if (!joined.includes(voteId)) {
     updateVoteCount(voteId).then(() => {
-      joined.push(voteId);
-      localStorage.setItem("joined", JSON.stringify(joined));
+      // joined.push(voteId);
+      // localStorage.setItem("joined", JSON.stringify(joined));
 
       checkVote(voteId).then((res) => {
         if (res.code === "-1") {
@@ -263,7 +275,7 @@ const totalScore = ref(0);
 const form = ref(null);
 
 const handleSubmit = () => {
-  if (voted.value) return;
+  // if (voted.value) return;
 
   form.value.validate((val) => {
     if (!val) return;
@@ -274,7 +286,7 @@ const handleSubmit = () => {
       myVote.content +
       myVote.effect;
 
-    voted.value = true;
+    // voted.value = true;
 
     setStorage(voteId, myVote.teacherid);
 
@@ -286,7 +298,7 @@ const handleSubmit = () => {
       }
       if (res.code === "-1") {
         ElMessage.warning({
-          message: "投票已过期或人数已满！",
+          message: res.msg,
         });
       }
     });
