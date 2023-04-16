@@ -1,13 +1,12 @@
 <template>
   <div>
-    <div class="logo" :style="{ backgroundImage: `url(/img/logo.jpg)` }"></div>
+    <div
+      class="logo"
+      :style="{ backgroundImage: `url('/src/assets/img//logo.jpg')` }"
+    ></div>
     <h3 class="score-title">全体总分：{{ allSum }}</h3>
     <div class="light-box" v-if="voteLimit !== -1">
-      <div
-        class="light-box-item"
-        v-for="item in allVotes.length"
-        :key="item.id"
-      ></div>
+      <div class="light-box-item" v-for="item in allVotes.length" :key="item.id"></div>
       <div
         class="light-box-item"
         style="background: green"
@@ -28,9 +27,9 @@
           label-width="80px"
           label-position="left"
           :model="myVote"
-          :rules="voteRules"
           status-icon
         >
+          <!-- :rules="voteRules" -->
           <el-form-item required label="老师" prop="teacherid">
             <el-select
               style="width: 100%"
@@ -45,13 +44,35 @@
               ></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="学号" prop="account">
+          <!-- <el-form-item label="学号" prop="account">
             <el-input disabled v-model="myVote.account" />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="姓名" prop="name">
             <el-input disabled v-model="myVote.name" />
           </el-form-item>
-          <el-form-item required label="班会方案" prop="program">
+          <template v-if="currentVoteType !== -1">
+            <template v-for="(item, idx) in voteFieldMap[currentVoteType]">
+              <el-form-item
+                :label="item.label"
+                :label-width="voteFieldWidthList[currentVoteType]"
+                :prop="voteFieldList[idx]"
+                required
+              >
+                <el-input-number
+                  :max="item.score"
+                  :min="0"
+                  style="width: 100%"
+                  v-model="myVote[voteFieldList[idx]]"
+                />
+              </el-form-item>
+            </template>
+          </template>
+          <template v-if="currentVoteType === -1">
+            <div>
+              <h2 style="text-align: center">选择教师后即可打分投票~</h2>
+            </div>
+          </template>
+          <!-- <el-form-item required label="班会方案" prop="program">
             <el-input-number style="width: 100%" v-model="myVote.program" />
           </el-form-item>
           <el-form-item required label="班会主题" prop="theme">
@@ -65,7 +86,7 @@
           </el-form-item>
           <el-form-item required label="展示效果" prop="effect">
             <el-input-number style="width: 100%" v-model="myVote.effect" />
-          </el-form-item>
+          </el-form-item> -->
         </el-form>
         <!-- <h3 v-if="voted" class="voted-title">您已参与投票！</h3> -->
         <el-button
@@ -82,23 +103,30 @@
             ><span v-show="voteLimit !== -1">限制人数: {{ voteLimit }}人</span>
           </div>
         </template>
-        <el-table :data="allVotes">
+        <el-table :data="allVotes" v-if="currentVoteType !== -1">
           <el-table-column prop="sum" label="总分"></el-table-column>
           <el-table-column prop="name" label="姓名"></el-table-column>
-          <el-table-column prop="account" label="学号"></el-table-column>
-          <el-table-column prop="program" label="班会方案"></el-table-column>
+          <!-- <el-table-column prop="account" label="学号"></el-table-column> -->
+          <el-table-column
+            v-for="(item, idx) in voteFieldMap[currentVoteType]"
+            :prop="voteFieldList[idx]"
+            :label="item.label"
+            :width="voteFieldWidthList[currentVoteType]"
+          >
+          </el-table-column>
+          <!-- <el-table-column prop="program" label="班会方案"></el-table-column>
           <el-table-column prop="theme" label="班会主题"></el-table-column>
           <el-table-column prop="formal" label="班会形式"></el-table-column>
           <el-table-column prop="content" label="班会内容"></el-table-column>
-          <el-table-column prop="effect" label="展示效果"></el-table-column>
+          <el-table-column prop="effect" label="展示效果"></el-table-column> -->
         </el-table>
       </el-collapse-item>
     </el-collapse>
     <el-dialog v-model="dialogVisible" title="请输入个人信息" width="60%">
       <el-form label-width="70" :model="myVote">
-        <el-form-item label="学号" required prop="account">
+        <!-- <el-form-item label="学号" required prop="account">
           <el-input v-model="myVote.account"></el-input>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="姓名" required prop="name">
           <el-input v-model="myVote.name"></el-input>
         </el-form-item>
@@ -129,15 +157,42 @@ const router = useRouter();
 const userInfoStr = localStorage.getItem("user-info") || "{}";
 const userInfo = userInfoStr && JSON.parse(userInfoStr);
 
+// input设置了max就会自动减去多余部分，所以这样做能保证初始值都是最大值
 const myVote = reactive({
-  program: 20,
-  theme: 20,
-  formal: 20,
-  content: 20,
-  effect: 20,
+  program: 50,
+  theme: 50,
+  formal: 50,
+  content: 50,
+  effect: 50,
   account: userInfo.account || "",
   name: userInfo.name || "",
 });
+
+const currentVoteType = ref(-1);
+
+const voteFieldList = ["program", "theme", "formal", "content", "effect"];
+
+const voteFieldWidthList = [150, 230, 200];
+
+// 案例研讨 谈心谈话 育人故事分享
+// 0，1，2分别对应是不同场次的key，直接把名字作为mapkey更加直观，但又要加一层映射...
+const voteFieldMap = {
+  0: [
+    { label: "提问清晰，逻辑明了", score: 30 },
+    { label: "答案能抓住问题本质", score: 20 },
+    { label: "有清晰的解决思路", score: 20 },
+    { label: "实施办法可行有效", score: 20 },
+    { label: "团队协作精神", score: 10 },
+  ],
+  1: [
+    { label: "了解相关政策与现代学生特征", score: 50 },
+    { label: "善于引导，答疑解惑有成效", score: 50 },
+  ],
+  2: [
+    { label: "语言自然，简洁朴实", score: 50 },
+    { label: "事例生动、感情真挚、具备感染力", score: 50 },
+  ],
+};
 
 const voteId = route.params.id;
 
@@ -181,7 +236,7 @@ if (!joined.includes(voteId)) {
 // localStorage.setItem("joined", JSON.stringify(joined));
 
 const handleInfoSubmit = () => {
-  if (!myVote.account || !myVote.name) {
+  if (/* !myVote.account || */ !myVote.name) {
     return ElMessage.warning({
       message: "请输入完整信息！",
     });
@@ -249,6 +304,7 @@ function updateAllVotes(stime) {
         allVotes.value = res.data.data;
         allSum.value = allVotes.value.reduce((prev, now) => prev + now.sum, 0);
         voteLimit.value === -1 && (voteLimit.value = res.data.max_count);
+        res.data.voteType && (currentVoteType.value = res.data.voteType);
       }
 
       // 减少不必要的请求
@@ -280,17 +336,23 @@ const handleSubmit = () => {
   form.value.validate((val) => {
     if (!val) return;
     totalScore.value =
-      myVote.program +
-      myVote.theme +
-      myVote.formal +
-      myVote.content +
-      myVote.effect;
+      myVote.program + myVote.theme + myVote.formal + myVote.content + myVote.effect;
 
     // voted.value = true;
 
     setStorage(voteId, myVote.teacherid);
 
-    postVote({ ...myVote, scoreid: voteId }).then((res) => {
+    const voteScores = {
+      ...myVote,
+    };
+
+    if (currentVoteType.value !== 0) {
+      voteScores.formal = 0;
+      voteScores.content = 0;
+      voteScores.effect = 0;
+    }
+
+    postVote({ ...voteScores, scoreid: voteId }).then((res) => {
       if (res.code === "500") {
         ElMessage.warning({
           message: "学号重复或人数已满！",
@@ -306,8 +368,7 @@ const handleSubmit = () => {
 };
 
 const validator = (rule, value, callback) => {
-  if (value < 0 || value > 20)
-    return callback(new Error("单项分数应在0-20之间！"));
+  if (value < 0 || value > 20) return callback(new Error("单项分数应在0-20之间！"));
   callback();
 };
 

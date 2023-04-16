@@ -19,14 +19,29 @@
           <el-input
             v-model="voteLimit"
             maxlength="2"
-            style="height: 50px; font-size: 20px; margin-top: 20px"
+            style="height: 50px; font-size: 20px; margin: 20px 0"
           />
           <div style="text-align: left">请输入教师人数：</div>
           <el-input
             v-model="teacherLimit"
             maxlength="2"
-            style="height: 50px; font-size: 20px; margin-top: 20px"
+            style="height: 50px; font-size: 20px; margin: 20px 0"
           />
+          <div style="text-align: left">请选择投票类型：</div>
+          <el-select
+            v-model="currentVoteType"
+            style="width: 100%; height: 50px; font-size: 20px; margin: 20px 0"
+            placeholder="Select"
+            size="large"
+          >
+            <el-option
+              style="height: 50px"
+              v-for="item in voteOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
           <el-button
             @click="handleLimitSubmit"
             type="primary"
@@ -92,6 +107,13 @@ const curStep = ref(0);
 const teacherLimit = ref(0);
 const teacherList = ref(Array.from({ length: 30 }, (idx) => ({ name: idx })));
 
+const voteOptions = [
+  { value: 0, label: "案例研讨" },
+  { value: 1, label: "谈心谈话" },
+  { value: 2, label: "育人故事分享" },
+];
+const currentVoteType = ref(0);
+
 const joinUrl = ref(import.meta.env.VITE_JOIN_URL);
 
 const handleLimitSubmit = () => {
@@ -123,6 +145,7 @@ const handleCodeSubmit = async () => {
     uuid: voteCode.value,
     paresoncount: voteLimit.value,
     teachers: teacherList.value,
+    voteType: currentVoteType.value,
   });
 
   if (code === "-1") {
@@ -137,7 +160,7 @@ const handleCodeSubmit = async () => {
 };
 </script>
 
-<style scoped>
+<style>
 .container {
   height: 100%;
   width: 100%;
@@ -153,5 +176,9 @@ const handleCodeSubmit = async () => {
 
 .el-carousel {
   height: 100%;
+}
+
+.el-input__wrapper {
+  height: 50px;
 }
 </style>

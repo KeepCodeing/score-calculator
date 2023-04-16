@@ -4,7 +4,7 @@
       <el-carousel-item>
         <div
           class="logo"
-          :style="{ backgroundImage: `url(/img/logo.jpg)` }"
+          :style="{ backgroundImage: `url('/src/assets/img/logo.jpg')` }"
         ></div>
       </el-carousel-item>
     </el-carousel>
